@@ -1,6 +1,7 @@
 import sys, re, logging
 from app.config import CodeStatus
 from datetime import datetime
+from uuid import uuid4
 
 
 class Util:
@@ -98,3 +99,7 @@ class Util:
     @classmethod
     def get_utc_time(cls):
         return datetime.utcnow()
+
+    @classmethod
+    def gen_id(cls):
+        return str(uuid4())[:7]

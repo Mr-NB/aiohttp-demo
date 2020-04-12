@@ -41,11 +41,11 @@ async def on_cleanup(app):
 
 
 async def main(app):
-    app.config = eval(os.getenv('ENV', 'Dev'))()
+    app.config = eval(os.getenv('ENV', 'Local'))()
     app.on_startup.append(on_startup)
     app.on_cleanup.append(on_cleanup)
     setup_jinja(app)
-    app.Scheduler.start()
+    # app.Scheduler.start()
 
     # aiohttp_session.setup(app, MongoStorage(MongoStorageCollection,max_age=app.config.SessionMaxAge))
     # aiohttp_session.setup(api, MongoStorage(MongoStorageCollection,max_age=app.config.SessionMaxAge))

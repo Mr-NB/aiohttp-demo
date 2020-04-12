@@ -2,17 +2,18 @@ version: '2.0'
 
 services:
   web:
-    image: nickbryant/test:1.0.0
-    container_name: web
+    image: nickbryant/xigua:nan-1.0.1
+    container_name: xigua
     environment:
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=test
-      - SERVER_PORT=8083
+      - SERVER_PORT=8085
+      - ENV=Pro
 
     restart: always
     ports:
-      - "8083:8083"
+      - "8085:8085"
     volumes:
       - /etc/timezone:/etc/timezone
       - /etc/localtime:/etc/localtime

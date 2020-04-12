@@ -6,12 +6,13 @@ from motor.motor_asyncio import AsyncIOMotorClient
 class MongoConfig:
     MongoHost = str(os.environ.get('MONGO_HOST', '127.0.0.1'))
     MongoPort = int(os.environ.get('MONGO_PORT', 27017))
-    MongoDB = str(os.environ.get('MONGO_DATABASE', "monitor_msn"))
+    MongoDB = str(os.environ.get('MONGO_DATABASE', "test"))
     MONGODB_POOL_SIZE = int(os.environ.get('MAXPOOLSIZE', 100))
     MongoClient = AsyncIOMotorClient(MongoHost, MongoPort)
     CrawlLog = 'crawl_log'
     MonitorLog = 'monitor_log'
     IpStatistic = 'IpStatistic'
+    XiGuaCommitHistory = "XiGuaCommitHistory"
 
 
 class IssueType(Enum):
