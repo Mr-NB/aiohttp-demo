@@ -2,38 +2,6 @@ import os, sys
 from enum import Enum
 from motor.motor_asyncio import AsyncIOMotorClient
 
-METRIC = {
-    "MSN_NAV": {
-        "CRAWL_NAME": "MSN China navigation monitor",
-        "INDEX_URL": 'https://www.msn.cn/zh-cn',
-
-    },
-    "NEW_Edge_MSN": {
-        "CRAWL_NAME": "New Msn Edege Monitor",
-        "INDEX_URL": os.environ.get('EDGE_URL', 'https://www.msn.cn/spartan/ntp?locale=zh-cn'),
-        'monitor_type': 1
-
-    },
-    "NEW_Ie_MSN": {
-        "CRAWL_NAME": "New Msn Ie Monitor",
-        "INDEX_URL": os.environ.get('IE_URL', 'https://www.msn.cn/spartan/ientp?locale=zh-cn'),
-        'monitor_type': 2
-
-    },
-    "NEW_Ext_MSN": {
-        "CRAWL_NAME": "New Msn Ext Monitor",
-        "INDEX_URL": os.environ.get('EXT_URL', 'https://www.msn.cn/spartan/dhp?locale=zh-cn'),
-        'monitor_type': 3
-
-    },
-    "NEW_Chrome_MSN": {
-        "CRAWL_NAME": "New Msn Chrome Monitor",
-        "INDEX_URL": 'https://www.msn.cn/spartan/extntp?locale=zh-cn',
-
-    },
-
-}
-
 
 class MongoConfig:
     MongoHost = str(os.environ.get('MONGO_HOST', '127.0.0.1'))
@@ -45,6 +13,7 @@ class MongoConfig:
     MonitorLog = 'monitor_log'
     IpStatistic = 'IpStatistic'
 
+
 class IssueType(Enum):
     Timeout = 0
     RedirectToHomepage = 1
@@ -54,7 +23,6 @@ class IssueType(Enum):
 
 class CodeStatus(Enum):
     SuccessCode = 200
-    # if 很抱歉！您访问页面被外星人劫持了 in response,use 208
     LogoWordsError = 208
     Unauthorized = 401
     NotFoundError = 404
@@ -85,7 +53,7 @@ class Local(BaseConfig):
 
     @property
     async def config(self):
-        res = await MongoConfig.MongoClient[MongoConfig.MongoDB].DynamicConfig.find_one({"env": self.name},{"_id": 0})
+        res = await MongoConfig.MongoClient[MongoConfig.MongoDB].DynamicConfig.find_one({"env": self.name}, {"_id": 0})
         return res
 
 
@@ -94,7 +62,7 @@ class Pro(BaseConfig):
 
     @property
     async def config(self):
-        res = await MongoConfig.MongoClient[MongoConfig.MongoDB].DynamicConfig.find_one({"env": self.name},{"_id": 0})
+        res = await MongoConfig.MongoClient[MongoConfig.MongoDB].DynamicConfig.find_one({"env": self.name}, {"_id": 0})
         return res
 
 

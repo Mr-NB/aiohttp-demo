@@ -25,9 +25,3 @@ async def config_get(request):
 
     print(request)
     return web.json_response(await app.config.config)
-
-
-@routes.get('/widget')
-@template('widget.html')
-async def widget(request):
-    pass
