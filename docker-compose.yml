@@ -2,7 +2,7 @@ version: '2.0'
 
 services:
   web:
-    image: nickbryant/xigua:nan-1.0.1
+    image: nickbryant/aiohttp:xigua-1.0.1
     container_name: xigua
     environment:
       - MONGO_HOST=mongo
@@ -17,6 +17,7 @@ services:
     volumes:
       - /etc/timezone:/etc/timezone
       - /etc/localtime:/etc/localtime
+      - /usr/local/project/aiohttp-demo/app/static/images/:/usr/src/xigua/app/static/images/
     networks:
       - app-net
 
