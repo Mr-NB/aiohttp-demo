@@ -4,6 +4,20 @@ from app.util import Util
 from app.config import CodeStatus, MongoConfig
 
 
+@web.middleware
+async def request_middleware(request, handler):
+    if str(request.content_type) == 'application/json':
+        response = await handler(request)
+    else:
+        multidict = await request.post()
+        jsons = {}
+        for key in iter(multidict):
+            jsons[key] = multidict[key]
+
+        request.json = jsons
+        response = await handler(request)
+    return response
+
 
 @web.middleware
 async def api_middleware(request, handler):
@@ -12,7 +26,7 @@ async def api_middleware(request, handler):
     mongo = MONGO(collectionName=MongoConfig.IpStatistic)
     filter_condition = {"ip": ip}
     if await mongo.find(filter_condition):
-        await mongo.update_one(filter_condition,{'$inc':{'count':1}})
+        await mongo.update_one(filter_condition, {'$inc': {'count': 1}})
     else:
         filter_condition.update({'count': 1})
         await mongo.insert_one(filter_condition)

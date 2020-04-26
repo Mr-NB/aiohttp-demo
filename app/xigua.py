@@ -10,6 +10,7 @@ from app.lib import Lib
 from pyppeteer import launch
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
+from app.upload import BaseUpload
 
 
 class XiGua:
@@ -75,3 +76,4 @@ class XiGua:
     async def get_commit_history(self):
         findRes = await MONGO(collectionName=self.commitHistoryCollection).find()
         return Util.format_Resp(data=findRes)
+

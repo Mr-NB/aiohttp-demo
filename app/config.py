@@ -13,7 +13,8 @@ class MongoConfig:
     MonitorLog = 'monitor_log'
     IpStatistic = 'IpStatistic'
     XiGuaCommitHistory = "XiGuaCommitHistory"
-
+    AboutMe = "AboutMe"
+    Common = "Common"
 
 class IssueType(Enum):
     Timeout = 0
