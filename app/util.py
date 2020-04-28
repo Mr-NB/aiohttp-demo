@@ -1,6 +1,7 @@
-import sys, re, logging
+import sys, re, logging, hashlib
+from uuid import uuid4
 from app.config import CodeStatus
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class Util:
@@ -92,9 +93,41 @@ class Util:
             return Util.format_Resp(code_type=CodeStatus.UnknownError, exc_obj=exp)
 
     @classmethod
-    def get_now_time(cls):
-        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    def get_now_time(cls, hms=True, ms=False, condition=None, is_before=True):
+        '''
+
+        :param hms:
+        :param condition: {"days/hours/minutes/seconds":xxx}
+        :param is_before:
+        :return:
+        '''
+        if condition:
+            if is_before:
+                res = datetime.now() - timedelta(**condition)
+            else:
+                res = datetime.now() + timedelta(**condition)
+        else:
+            res = datetime.now()
+
+        if hms:
+            if ms:
+                return res.strftime('%Y-%m-%d %H:%M:%S.%f')[:-2]
+            else:
+                return res.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            return res.strftime('%Y-%m-%d')
 
     @classmethod
-    def get_utc_time(cls):
-        return datetime.utcnow()
+    def gen_str_md5_hash(cls, text):
+        '''
+        Generates md5 hash.
+        :param obj:
+        :return: Encoded string.
+        '''
+        md5 = hashlib.md5()
+        md5.update(text.encode(encoding='utf-8'))
+        return md5.hexdigest()
+
+    @classmethod
+    def gen_id(cls):
+        return str(uuid4())[:7]

@@ -2,20 +2,22 @@ version: '2.0'
 
 services:
   web:
-    image: nickbryant/test:1.0.0
-    container_name: web
+    image: nickbryant/tomato:1.0.0
+    container_name: tomato
     environment:
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
-      - MONGO_DB=test
-      - SERVER_PORT=8083
+      - MONGO_DB=tomato
+      - SERVER_PORT=8087
 
     restart: always
     ports:
-      - "8083:8083"
+      - "8087:8087"
     volumes:
       - /etc/timezone:/etc/timezone
       - /etc/localtime:/etc/localtime
+      - /usr/local/data/tomato/images/:/usr/src/tomato/static/images/
+      - /usr/local/data/tomato/data/:/usr/src/tomato/static/data/
     networks:
       - app-net
 

@@ -1,15 +1,15 @@
-import sys,logging
+import sys, logging, os
+import aiofiles
 from jinja2 import FileSystemLoader, Environment
 from pathlib import Path
-from app.config import CodeStatus
+from app.config import CodeStatus, MongoConfig
 from app.util import Util
 from app import app
+from app.db import MONGO
 
 
 class Lib:
-
     ENV = app.config.name
-
 
     @classmethod
     async def Request(cls, headers=None, endpoint=None, methods=None, json=None):
@@ -99,3 +99,4 @@ class Lib:
         else:
             logging.info('Save statistic data successfully')
             message = Util.format_Resp(data='Save statistic data successfully')
+

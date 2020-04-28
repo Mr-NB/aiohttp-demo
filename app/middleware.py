@@ -4,7 +4,6 @@ from app.util import Util
 from app.config import CodeStatus, MongoConfig
 
 
-
 @web.middleware
 async def api_middleware(request, handler):
     ip = request.remote
@@ -12,7 +11,7 @@ async def api_middleware(request, handler):
     mongo = MONGO(collectionName=MongoConfig.IpStatistic)
     filter_condition = {"ip": ip}
     if await mongo.find(filter_condition):
-        await mongo.update_one(filter_condition,{'$inc':{'count':1}})
+        await mongo.update_one(filter_condition, {'$inc': {'count': 1}})
     else:
         filter_condition.update({'count': 1})
         await mongo.insert_one(filter_condition)
