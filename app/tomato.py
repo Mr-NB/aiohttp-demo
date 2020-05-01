@@ -26,23 +26,23 @@ class TomAto:
         return returnData
 
     async def downloadImage(self, url):
-
-        nowDate = Util.get_now_time(hms=False)
-        dirPath = "{}/{}".format(self.basePath, nowDate)
-
-        if not os.path.exists(dirPath):
-            os.mkdir(dirPath)
-
         try:
+            nowDate = Util.get_now_time(hms=False)
+            dirPath = "{}/{}".format(self.basePath, nowDate)
+
+            if not os.path.exists(dirPath):
+                os.mkdir(dirPath)
 
             async with app.Session.get(url) as response:
                 img = await response.read()
                 uId = Util.gen_str_md5_hash(Util.get_now_time(ms=True))
                 self.uIdList.append(uId)
                 imageName = "{}.png".format(uId)
+
                 async with aiofiles.open("{}/{}".format(dirPath, imageName), mode='wb') as f:
                     await f.write(img)
                     return Util.format_Resp(message="save successfully")
+
         except:
             self.errorList.append({"url": url, "message": "download failed"})
 
@@ -61,11 +61,11 @@ class TomAto:
         try:
             async with aiofiles.open("{}/{}.txt".format(self.basePath, taskId), mode='r') as f:
                 rList = await f.readlines()
-                rList = [r.replace("\n", "").replace(" ", "") for r in rList]
+                rList = [r.replace("\n", "").replace(" ", "").replace(":", "").replace("：", "") for r in rList]
                 length, width = rList[1::2]
-                self.dataList.append({"taskId": taskId, "result": {"length(pixel)：": length,
-                                                                   "width(mm)：": width},
+                self.dataList.append({"taskId": taskId, "result": {"length(pixel)": length,
+                                                                   "width(mm)": width},
                                       "status": ExecuteStatus.success})
         except:
-            self.dataList.append({"taskId": taskId, "result": {"length(pixel)：": "",
-                                                               "width(mm)：": ""}, "status": ExecuteStatus.failure})
+            self.dataList.append({"taskId": taskId, "result": {"length(pixel)": "",
+                                                               "width(mm)": ""}, "status": ExecuteStatus.failure})

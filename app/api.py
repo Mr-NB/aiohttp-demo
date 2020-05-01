@@ -22,7 +22,8 @@ async def upload(request):
         return web.json_response(Util.format_Resp(code_type=CodeStatus.NoDataError, message="invalid parameters"))
 
     basePath = os.getenv("imageFilePath", '{}/images'.format(staticPath))
-
+    if not os.path.exists(basePath):
+        os.mkdir(basePath)
     return web.json_response(await TomAto(basePath).main(images))
 
 
@@ -40,5 +41,7 @@ async def read_detection_data(request):
     else:
 
         basePath = os.getenv("dataFilePath", '{}/data'.format(staticPath))
+        if not os.path.exists(basePath):
+            os.mkdir(basePath)
         returnData = await TomAto(basePath).get_detection_data(taskIds)
     return web.json_response(returnData)
