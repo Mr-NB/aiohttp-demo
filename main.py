@@ -20,7 +20,6 @@ async def on_startup(app):
     from app.routes import setup_ui_routes
     app.logger = web_logger
     setup_ui_routes(app)
-    app.MongoClient = MongoConfig.MongoClient
     # 初始化Session
     coon = aiohttp.TCPConnector(limit=10)
     session = aiohttp.ClientSession(connector=coon)
@@ -34,14 +33,11 @@ async def on_startup(app):
 
 
 async def on_cleanup(app):
-    # session = VAR.get()
     await app.Session.close()
     app.logger.info('close Mongo')
-    # await app.MongoDB.close()
 
 
 async def main(app):
-    app.config = eval(os.getenv('ENV', 'Dev'))()
     app.on_startup.append(on_startup)
     app.on_cleanup.append(on_cleanup)
     setup_jinja(app)
