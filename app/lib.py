@@ -5,7 +5,6 @@ from pathlib import Path
 from app.config import CodeStatus, MongoConfig
 from app.util import Util
 from app import app
-from app.db import MONGO
 
 
 class Lib:

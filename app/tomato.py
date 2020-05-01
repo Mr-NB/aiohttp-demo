@@ -2,7 +2,6 @@ import os, sys
 import aiofiles, asyncio
 from app import app
 from app.util import Util
-from app.db import MONGO
 from app.config import MongoConfig, CodeStatus, ExecuteStatus
 
 
@@ -52,11 +51,6 @@ class TomAto:
         readTasks = [self.read_file(tId) for tId in taskIdList]
         await asyncio.gather(*readTasks)
         return Util.format_Resp(data=self.dataList)
-
-    async def find_data(self, uId):
-        finRes = await MONGO(collectionName=MongoConfig.ImageCommitHistory).find({"uId": uId}, length=1)
-        if finRes:
-            self.fileNameList.append(finRes[0].get("name"))
 
     async def read_file(self, taskId):
         '''

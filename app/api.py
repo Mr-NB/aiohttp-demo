@@ -3,8 +3,10 @@ from aiohttp import web
 from app.util import Util
 from app.config import CodeStatus
 from app.tomato import TomAto
+from pathlib import Path
 
 routes = web.RouteTableDef()
+staticPath = str(Path(__file__).parent / "static")
 
 
 @routes.post('/api/create-task')
@@ -19,7 +21,7 @@ async def upload(request):
     if not images:
         return web.json_response(Util.format_Resp(code_type=CodeStatus.NoDataError, message="invalid parameters"))
 
-    basePath = os.getenv("imageFilePath",'D:\tomato\app\static\images')
+    basePath = os.getenv("imageFilePath", '{}/images'.format(staticPath))
 
     return web.json_response(await TomAto(basePath).main(images))
 
@@ -36,6 +38,7 @@ async def read_detection_data(request):
     if not taskIds:
         returnData = Util.format_Resp(code_type=CodeStatus.ParametersMissError, message="invalid parameters")
     else:
-        basePath = os.getenv("dataFilePath",'D:\tomato\app\static\data')
+
+        basePath = os.getenv("dataFilePath", '{}/data'.format(staticPath))
         returnData = await TomAto(basePath).get_detection_data(taskIds)
     return web.json_response(returnData)

@@ -4,7 +4,7 @@ from contextvars import ContextVar
 from apscheduler.executors.asyncio import AsyncIOExecutor
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.config import Local, MongoConfig
-from app.middleware import error_middleware, api_middleware
+from app.middleware import error_middleware
 
 executors = {
     'default': AsyncIOExecutor(),
@@ -20,5 +20,5 @@ job_defaults = {
 scheduler = AsyncIOScheduler(executors=executors)
 VAR = ContextVar('VAR', default='default')
 
-app = web.Application(middlewares=[error_middleware, api_middleware])
+app = web.Application(middlewares=[error_middleware])
 app.Scheduler = scheduler
