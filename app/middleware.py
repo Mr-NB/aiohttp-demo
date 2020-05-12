@@ -1,6 +1,6 @@
 import logging, sys
 from aiohttp import web
-from app.util import Util
+from app.util import Util, Auth
 from app.config import CodeStatus, MongoConfig
 
 
@@ -23,12 +23,31 @@ async def request_middleware(request, handler):
 async def api_middleware(request, handler):
     ip = request.remote
     from app.db import MONGO
+    if request.method == "OPTIONS":
+        return await handler(request)
+
+    if request.path.startswith('/static'):
+        return await handler(request)
+    # auth
+    if request.path == "/api/user/login":
+        return await handler(request)
+
+    token = request.headers.get('Authorization')
+    if not token:
+        return web.json_response(Util.format_Resp(code_type=CodeStatus.Unauthorized, message='Unauthorized'))
+    authRes = Auth.decode_auth_token(token)
+    if authRes.get('code') != 200:
+        errorMessage = authRes.get('message')
+        return web.json_response(Util.format_Resp(code_type=CodeStatus.Unauthorized, message=errorMessage))
+    tokenData = authRes.get('data')
+    userName = tokenData.get('data', {}).get('username', '')
+    request['username'] = userName
     mongo = MONGO(collectionName=MongoConfig.IpStatistic)
     filter_condition = {"ip": ip}
     if await mongo.find(filter_condition):
-        await mongo.update_one(filter_condition, {'$inc': {'count': 1}})
+        await mongo.update_one(filter_condition, {'$inc': {'count': 1}, "$set": {"updateDate": Util.get_now_time()}})
     else:
-        filter_condition.update({'count': 1})
+        filter_condition.update({'count': 1, 'userName': userName, "createDate": Util.get_now_time()})
         await mongo.insert_one(filter_condition)
     return await handler(request)
 

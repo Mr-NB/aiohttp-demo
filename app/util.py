@@ -1,4 +1,6 @@
-import sys, re, logging
+import sys, re, logging, time
+import jwt
+from datetime import datetime, timedelta
 from app.config import CodeStatus
 from datetime import datetime
 from uuid import uuid4
@@ -105,5 +107,78 @@ class Util:
         return str(uuid4())[:7]
 
 
+class Auth():
+    @staticmethod
+    async def encode_auth_token(user_name):
+        """
+        生成认证Token
+        :param user_id: int
+        :param login_time: int(timestamp)
+        :return: string
+        """
+        from app import app
+        config = await app.config.config
+        try:
+            payload = {
+                'exp': datetime.utcnow() + timedelta(seconds=config.get("tokenExpired", 3600)),
+                'iss': 'myvue',
+                'iat': datetime.utcnow(),
+                'data': {
+                    'username': user_name,
+                    'login_time': Util.get_now_time()
+                }
+            }
+            return Util.format_Resp(data=jwt.encode(
+                payload,
+                'secret',
+                algorithm='HS256'
+            ).decode('utf-8'))
+        except:
+            exp = sys.exc_info()
+            return Util.format_Resp(code_type=CodeStatus.UnknownError, message="encode token failed",
+                                    sys_obj=sys._getframe(), exp_obj=exp)
 
+    @staticmethod
+    def decode_auth_token(auth_token):
+        """
+        验证Token
+        :param auth_token:
+        :return: integer|string
+        """
+        try:
+            payload = jwt.decode(auth_token, 'secret')
+            if ('data' in payload and 'username' in payload['data']):
+                return Util.format_Resp(data=payload)
+            else:
+                raise jwt.InvalidTokenError
 
+        except jwt.ExpiredSignatureError:
+            return Util.format_Resp(code_type=CodeStatus.Unauthorized, message="token is expired")
+        except jwt.InvalidTokenError:
+            return Util.format_Resp(code_type=CodeStatus.Unauthorized, message="token is invalid")
+
+    # def identify(self, request):
+    #     """
+    #     用户鉴权
+    #     :return: list
+    #     """
+    #     auth_header = request.headers.get('Authorization')
+    #     if (auth_header):
+    #         auth_tokenArr = auth_header.split(" ")
+    #         if (not auth_tokenArr or auth_tokenArr[0]!= 'jwt' or len(auth_tokenArr) != 2 ):
+    #             result = common.falseReturn('','请传递正确的验证头信息')
+    #         else:
+    #             auth_token = auth_tokenArr[1]
+    #             payload = self.decode_auth_token(auth_token)
+    #             if not isinstance(payload, str):
+    #                 userDao = UserDao()
+    #                 user = userDao.search(payload['data']['id'])
+    #                 if (user is None):
+    #                     result = common.falseReturn('', '找不到该用户信息')
+    #                 else:
+    #                     result = common.trueReturn('', '请求成功')
+    #             else:
+    #                 result = common.falseReturn('', payload)
+    #     else:
+    #         result = common.falseReturn('','没有提供认证token')
+    #     return result

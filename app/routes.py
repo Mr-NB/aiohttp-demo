@@ -10,6 +10,10 @@ def setup_ui_routes(app):
     :param app:
     :return:
     """
+
+    app.router.add_routes(api.routes)
+    app.router.add_static('/static/', path=static_path, name='static')
+    app.router.add_view('/api/admin/user', api.AdminUserView)
     cors = aiohttp_cors.setup(app, defaults={
         "*": aiohttp_cors.ResourceOptions(
             allow_credentials=True,
@@ -17,7 +21,6 @@ def setup_ui_routes(app):
             allow_headers="*",
         )
     })
-    app.router.add_routes(api.routes)
-    app.router.add_static('/static/', path=static_path, name='static')
+
     for route in list(app.router.routes()):
         cors.add(route)

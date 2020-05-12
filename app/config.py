@@ -15,6 +15,14 @@ class MongoConfig:
     XiGuaCommitHistory = "XiGuaCommitHistory"
     AboutMe = "AboutMe"
     Common = "Common"
+    User = "User"
+    Vpn = "Vpn"
+
+
+class UserType:
+    admin = 1
+    common = 2
+
 
 class IssueType(Enum):
     Timeout = 0
@@ -34,16 +42,25 @@ class CodeStatus(Enum):
     NoDataError = 152
     CmsApiError = 153
     CmsUndoPublishError = 156
-    PermissionDenied = 104
-    FormatError = 105
-    ParametersMissError = 106
-    ParametersTypeError = 107
-    InvalidDataError = 108
-    DataDuplicateError = 109
-    SqlError = 110
-    SendMailError = 111
-    JobRunError = 112
-    CmsApiFormatError = 157
+
+    # 10x about user
+    UserNameExists = 100
+    UserNameNotExists = 101
+    UserNameFormatInvalid = 102
+    PasswordFormatInvalid = 103
+    PasswordInvalid = 104
+
+    # 11x- about system
+    PermissionDenied = 110
+    FormatError = 111
+    ParametersMissError = 112
+    ParametersTypeError = 113
+    InvalidDataError = 114
+    DataDuplicateError = 115
+    SqlError = 116
+    SendMailError = 117
+    JobRunError = 118
+    dataDuplication = 119
 
 
 class BaseConfig:
