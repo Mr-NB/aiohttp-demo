@@ -31,7 +31,8 @@ async def api_middleware(request, handler):
     # auth
     if request.path == "/api/user/login":
         return await handler(request)
-
+    if not request.path.startswith('/api'):
+        return await handler(request)
     token = request.headers.get('Authorization')
     if not token:
         return web.json_response(Util.format_Resp(code_type=CodeStatus.Unauthorized, message='Unauthorized'))

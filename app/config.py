@@ -64,7 +64,9 @@ class CodeStatus(Enum):
 
 
 class BaseConfig:
-    pass
+    movie = "mp4"
+    image = "png"
+    excel = "xlsx"
 
 
 class Local(BaseConfig):

@@ -1,5 +1,3 @@
-
-
 # About page
 import sys
 from app.upload import BaseUpload
@@ -12,7 +10,16 @@ class Common(BaseUpload):
     name = sys._getframe().f_code.co_name
     uploadCollection = MongoConfig.Common
 
-    async def get(self):
-        findRes = await MONGO(collectionName=self.uploadCollection).find()
+    @classmethod
+    async def get(cls, name=None):
+        '''
+
+        :param name: ["x1","x2"]|{}
+        :return:
+        '''
+        if name:
+            findRes = await MONGO(collectionName=cls.uploadCollection).find({"name": {"$in": name}})
+        else:
+            findRes = await MONGO(collectionName=cls.uploadCollection).find()
 
         return Util.format_Resp(data=findRes)

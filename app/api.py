@@ -40,26 +40,30 @@ async def config_get(request):
 async def about_upload(request):
     params = await request.post()
 
-    res = await About().upload(params)
+    res = await About(params, request.get('username')).upload()
     return web.json_response(res)
 
 
-@routes.get('/api/about/get')
+@routes.post('/api/about/get')
 async def get_upload(request):
-    findRes = await About().get()
+    params = await request.json()
+    findRes = await About.get(params.get('name'))
     return web.json_response(findRes)
 
 
 @routes.post('/api/common/upload')
 async def common_upload(request):
     params = await request.post()
-    res = await Common().upload(params)
+
+    res = await Common(request.get('username'), params).upload()
     return web.json_response(res)
 
 
-@routes.get('/api/common/get')
+@routes.post('/api/common/get')
 async def get_common(request):
-    findRes = await Common().get()
+    params = await request.json()
+
+    findRes = await Common.get(params.get('name'))
     return web.json_response(findRes)
 
 

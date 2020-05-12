@@ -2,19 +2,24 @@ import xlrd, sys
 from pathlib import Path
 from app import app
 from app.util import Util
-from app.config import CodeStatus
+from app.config import CodeStatus, BaseConfig
 from app.db import MONGO
 import aiofiles
 
 
 class BaseUpload:
+    name = sys._getframe().f_code.co_name
+    uploadCollection = ""
 
-    def __init__(self, uploaded_file=None, username=None):
+    def __init__(self, username=None, params=None):
 
-        self.uploaded_file = uploaded_file
+        self.uploaded_file = ''
         self.commitId = Util.gen_id()
         self.username = username
         self.fileType = ""
+        self.params = params
+        self.content = ""
+        self.fileName = ''
 
         self.parentPath = str(Path(__file__).parent)
 
@@ -23,29 +28,37 @@ class BaseUpload:
             return await getattr(self, "{}_filter".format(self.fileType))(content)
         return Util.format_Resp(code_type=CodeStatus.FormatError, message='Invalid file')
 
-    async def main(self):
+    async def upload(self):
 
-        # Gets file.
-        file = self.uploaded_file.file
+        file = self.params.get('file')
+
         if not file:
             return Util.format_Resp(code_type=CodeStatus.NotFoundError, errorDetail='No uploaded file')
+        self.uploaded_file = file.file
+        self.fileName = file.filename
         config = await app.config.config
         try:
-            fileSuffix = self.uploaded_file.filename.split(".")[-1]
+            fileSuffix = self.fileName.split(".")[-1]
             if fileSuffix in config.get("allowExcelType", ["xls", "xlsx"]):
                 self.fileType = "excel"
             elif fileSuffix in config.get("allowImageType", ["png", "jpg"]):
                 self.fileType = "image"
+            elif fileSuffix in config.get("allowMovieType", ["mp4", "wmv"]):
+                self.fileType = "movie"
             else:
                 self.fileType = ""
         except:
             self.fileType = ""
 
         # Gets content.
-        content = file.read()
+        content = self.uploaded_file.read()
         if not content:
             return Util.format_Resp(code_type=CodeStatus.NotFoundError, errorDetail='No content in file')
-        return await self.filter(content)
+        filterRes = await self.filter(content)
+        if filterRes.get('code') != 200:
+            return filterRes
+        self.content = filterRes.get('data')
+        return await self.execute()
 
     async def excel_filter(self, content):
         '''
@@ -81,6 +94,14 @@ class BaseUpload:
 
         return Util.format_Resp(data=all_data)
 
+    async def movie_filter(self, content):
+        '''
+        basic image filter condition
+        :param content:
+        :return:
+        '''
+        return Util.format_Resp(data=content)
+
     async def image_filter(self, content):
         '''
         basic image filter condition
@@ -89,15 +110,19 @@ class BaseUpload:
         '''
         return Util.format_Resp(data=content)
 
-    async def upload(self, params):
+    async def execute(self):
 
-        uploadFile = params.get("file")
-        commitId = params.get("commitId")
+        commitId = self.params.get("commitId")
+        name = self.params.get('name')
         if commitId:
             self.commitId = commitId
-        findRes = await MONGO(collectionName=self.uploadCollection).find({"commitId": self.commitId}, length=1)
+            findRes = await MONGO(collectionName=self.uploadCollection).find({"commitId": self.commitId}, length=1)
+        else:
+            findRes = await MONGO(collectionName=self.uploadCollection).find({"name": name}, length=1)
+            if findRes:
+                return Util.format_Resp(code_type=CodeStatus.dataDuplication,message="name does exists")
         if not findRes:
-            name = params.get("name", Util.get_now_time())
+            name = self.params.get("name", Util.get_now_time())
             updateData = {
                 "updateDate": Util.get_now_time(),
                 "commitId": self.commitId
@@ -108,20 +133,14 @@ class BaseUpload:
             name = data.get("name")
             updateData = data
 
-        filePath = "/static/images/{}/{}.png".format(self.name, name)
-        if uploadFile:
-            self.uploaded_file = uploadFile
-            contentRes = await self.main()
-            if contentRes.get("code") != 200:
-                return contentRes
-            content = contentRes.get("data")
+        filePath = "/static/images/{}/{}.{}".format(self.name, name, getattr(BaseConfig, self.fileType))
 
-            async with aiofiles.open(self.parentPath + filePath, mode='wb') as f:
-                await f.write(content)
+        async with aiofiles.open(self.parentPath + filePath, mode='wb') as f:
+            await f.write(self.content)
 
-            updateData['filePath'] = filePath
+        updateData['filePath'] = filePath
 
-        updateData.update(params)
+        updateData.update(self.params)
         if updateData.get("file"):
             del updateData['file']
         await MONGO(collectionName=self.uploadCollection).update_one({"commitId": self.commitId}, {"$set": updateData})
