@@ -9,11 +9,11 @@ from uuid import uuid4
 class Util:
     @classmethod
     def format_Resp(cls, code_type=CodeStatus.SuccessCode,
+                    errorDetail='',
                     data='',
                     message='',
-                    sys_obj=None,
+                    sys_obj=sys._getframe(),
                     exp_obj=None,
-                    exception='',
                     **kwargs
                     ):
         '''
@@ -21,6 +21,7 @@ class Util:
         :param code_type:   int|错误状态
         :param errorDetail: str|错误详情
         :param data:   str|request成功后填充
+        :param alert: str|前端显示信息
         :param message:  str|提示信息
         :param sys_obj:  Obj|获取当前文件名,函数名,所在行数
         :return:
@@ -28,37 +29,50 @@ class Util:
         Resp = {}
         Resp['code'] = code_type.value
 
-        if sys_obj:
+        if errorDetail:
             Resp['errorDetail'] = {"file": sys_obj.f_code.co_filename.split('/')[-1],
                                    "function": sys_obj.f_code.co_name,
                                    "lineNo": sys_obj.f_lineno,
-                                   "exception": exception
+                                   'exception': errorDetail
                                    }
         elif exp_obj:
-            exception = cls.exception_handler(exp_obj)
-            Resp['errorDetail'] = exception
-            message = exception.get('exception')
+            Resp['errorDetail'] = cls.exception_handler(exp_obj)
         else:
             Resp['data'] = data
-        Resp['message'] = message if message else code_type.name
+
+        if Resp.get('errorDetail'):
+            exception = Resp['errorDetail'].get('exception')
+            Resp['message'] = message if message else exception
+        else:
+            Resp['message'] = message if message else code_type.name
         if kwargs:
             for key, value in kwargs.items():
                 Resp[str(key)] = value
         return Resp
 
     @classmethod
-    def exception_handler(clsm, exp_obj):
+    def exception_handler(cls, exp_obj):
         tb_next = exp_obj[2].tb_next
-        while tb_next:
-            if not tb_next.tb_next:
-                break
-            else:
-                tb_next = tb_next.tb_next
-        tb_frame = tb_next.tb_frame
-        filename = tb_frame.f_code.co_filename
-        func_name = tb_frame.f_code.co_name
-        lineno = tb_frame.f_lineno
         exception = exp_obj[0].__name__ + ":" + str(exp_obj[1]).replace("'", '')
+        import traceback
+        if not tb_next:
+
+            tb_frame = exp_obj[2].tb_frame
+            last_stack = traceback.extract_stack(tb_frame)[-1]
+            lineno = last_stack.lineno
+            filename = last_stack.filename.split('/')[-1]
+            func_name = last_stack.name
+        else:
+            while tb_next:
+                if not tb_next.tb_next:
+                    break
+                else:
+                    tb_next = tb_next.tb_next
+            tb_frame = tb_next.tb_frame
+            filename = tb_frame.f_code.co_filename
+            func_name = tb_frame.f_code.co_name
+            lineno = tb_frame.f_lineno
+
         return {"file": filename, "function": func_name,
                 "lineNo": lineno, "exception": exception
                 }
@@ -92,7 +106,7 @@ class Util:
             return cls.format_Resp(data=data)
         except:
             exp = sys.exc_info()
-            return Util.format_Resp(code_type=CodeStatus.UnknownError, exc_obj=exp)
+            return Util.format_Resp(code_type=CodeStatus.UnknownError, exp_obj=exp)
 
     @classmethod
     def get_now_time(cls):

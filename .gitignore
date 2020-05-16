@@ -132,4 +132,5 @@ dmypy.json
 test*.py
 *.xml
 *.pyc
-
+static
+.idea

@@ -33,6 +33,11 @@ async def api_middleware(request, handler):
         return await handler(request)
     if not request.path.startswith('/api'):
         return await handler(request)
+    isAdmin = request.headers.get('isAdmin')
+    # skip auth if headers contain isAdmin && isAdmin it ture
+    if isAdmin:
+        request['username'] = 'admin'
+        return await handler(request)
     token = request.headers.get('Authorization')
     if not token:
         return web.json_response(Util.format_Resp(code_type=CodeStatus.Unauthorized, message='Unauthorized'))
@@ -44,7 +49,7 @@ async def api_middleware(request, handler):
     userName = tokenData.get('data', {}).get('username', '')
     request['username'] = userName
     mongo = MONGO(collectionName=MongoConfig.IpStatistic)
-    filter_condition = {"ip": ip}
+    filter_condition = {"ip": ip, "userName": userName}
     if await mongo.find(filter_condition):
         await mongo.update_one(filter_condition, {'$inc': {'count': 1}, "$set": {"updateDate": Util.get_now_time()}})
     else:

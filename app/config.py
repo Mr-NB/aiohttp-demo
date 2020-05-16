@@ -64,33 +64,26 @@ class CodeStatus(Enum):
 
 
 class BaseConfig:
+    name = sys._getframe().f_code.co_name
     movie = "mp4"
     image = "png"
     excel = "xlsx"
+
+    @property
+    async def config(self):
+        res = await MongoConfig.MongoClient[MongoConfig.MongoDB].DynamicConfig.find_one({"env": self.name}, {"_id": 0})
+        if not res:
+            res = {}
+        return res
 
 
 class Local(BaseConfig):
     name = sys._getframe().f_code.co_name
 
-    @property
-    async def config(self):
-        res = await MongoConfig.MongoClient[MongoConfig.MongoDB].DynamicConfig.find_one({"env": self.name}, {"_id": 0})
-        return res
-
 
 class Pro(BaseConfig):
     name = sys._getframe().f_code.co_name
 
-    @property
-    async def config(self):
-        res = await MongoConfig.MongoClient[MongoConfig.MongoDB].DynamicConfig.find_one({"env": self.name}, {"_id": 0})
-        return res
-
 
 class Dev(BaseConfig):
     name = sys._getframe().f_code.co_name
-
-    @property
-    async def config(self):
-        res = await MongoConfig.MongoClient[MongoConfig.MongoDB].DynamicConfig.find_one({"env": self.name}, {"_id": 0})
-        return res

@@ -20,8 +20,8 @@ class BaseUpload:
         self.params = params
         self.content = ""
         self.fileName = ''
-
         self.parentPath = str(Path(__file__).parent)
+        self.filePath = ""
 
     async def filter(self, content, *args, **kwargs):
         if self.fileType:
@@ -29,7 +29,8 @@ class BaseUpload:
         return Util.format_Resp(code_type=CodeStatus.FormatError, message='Invalid file')
 
     async def upload(self):
-
+        config = await app.config.config
+        self.filePath = config.get('staticFilePath', "{}/static/images".format(self.parentPath))
         file = self.params.get('file')
 
         if not file:
@@ -120,7 +121,7 @@ class BaseUpload:
         else:
             findRes = await MONGO(collectionName=self.uploadCollection).find({"name": name}, length=1)
             if findRes:
-                return Util.format_Resp(code_type=CodeStatus.dataDuplication,message="name does exists")
+                return Util.format_Resp(code_type=CodeStatus.dataDuplication, message="name does exists")
         if not findRes:
             name = self.params.get("name", Util.get_now_time())
             updateData = {
@@ -132,13 +133,13 @@ class BaseUpload:
             data = findRes[0]
             name = data.get("name")
             updateData = data
-
-        filePath = "/static/images/{}/{}.{}".format(self.name, name, getattr(BaseConfig, self.fileType))
-
-        async with aiofiles.open(self.parentPath + filePath, mode='wb') as f:
+        dirPath = "{}/{}.{}".format(self.name, name, getattr(BaseConfig, self.fileType))
+        absFilePath = "{}/{}".format(self.filePath, dirPath)
+        relFilePath = "/{}/{}".format("/".join(self.filePath.split('/')[-2:]), dirPath)
+        async with aiofiles.open(absFilePath, mode='wb') as f:
             await f.write(self.content)
 
-        updateData['filePath'] = filePath
+        updateData['filePath'] = relFilePath
 
         updateData.update(self.params)
         if updateData.get("file"):

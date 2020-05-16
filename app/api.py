@@ -24,18 +24,6 @@ async def config_get(request):
     return web.json_response(Util.format_Resp(data=await app.config.config))
 
 
-@routes.get('/api/test')
-async def config_get(request):
-    '''
-    获取配置信息
-    :param request:
-    :return:
-    '''
-
-    print(request)
-    return web.json_response(await app.config.config)
-
-
 @routes.post('/api/about/upload')
 async def about_upload(request):
     params = await request.post()
