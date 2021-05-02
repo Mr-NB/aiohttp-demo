@@ -1,0 +1,303 @@
+version: '3.1'
+
+services:
+
+  nginx:
+    depends_on:
+      - php5
+    image: nginx
+    restart: always
+    ports:
+      - "80-90:80-90"
+      - "443:443"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /data/nginx/log:/var/log/nginx
+      - /data/www:/usr/share/nginx/html
+
+  php5:
+    depends_on:
+      - mysql5
+    image: leleos/php-fpm:5.4
+    ports:
+      - "9000:9000"
+    volumes:
+      - /data/www/auto:/var/www/html
+
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "16379:6379"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /data/redis:/data
+
+  mysql:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "13306:3306"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /data/mysql:/var/lib/mysql
+
+  mysql5:
+    image: mysql:5
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "23306:3306"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /data/mysql5:/var/lib/mysql
+
+  phpredisadmin:
+    depends_on:
+      - redis
+    image: erikdubbelboer/phpredisadmin
+    restart: always
+    environment:
+      ADMIN_USER: silence129
+      ADMIN_PASS: liangliang00
+      REDIS_1_NAME: localhost
+      REDIS_1_HOST: redis
+      REDIS_1_PORT: 6379
+      REDIS_2_NAME: cn-shanghai
+      REDIS_2_HOST: r-uf6fdjkn81hhhgljphpd.redis.rds.aliyuncs.com
+      REDIS_2_PORT: 6379
+      REDIS_2_AUTH: Alyconfig2018
+      REDIS_3_NAME: ap-southeast-1
+      REDIS_3_HOST: r-t4nlgo8u9duti1qy04pd.redis.singapore.rds.aliyuncs.com
+      REDIS_3_PORT: 6379
+      REDIS_3_AUTH: Alyconfig2019
+    ports:
+      - "8001:80"
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  mysql-adminer:
+    image: adminer
+    restart: always
+    environment:
+      ADMINER_DEFAULT_SERVER: rm-2ze9pu1sorjp72018.mysql.rds.aliyuncs.com
+    ports:
+      - "8003:8080"
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  gogs:
+    depends_on:
+      - mysql
+    image: gogs/gogs
+    restart: always
+    ports:
+      - "10022:22"
+      - "13000:3000"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /data/gogs:/data
+
+  sentinel:
+    image: bladex/sentinel-dashboard
+    ports:
+      - "8007:8858"
+    volumes:
+      - /etc/localtime:/etc/localtime
+    restart: always
+
+  vsftpd:
+    image: fauria/vsftpd
+    restart: always
+    ports:
+      - "10020:20"
+      - "10021:21"
+      - "21100-21110:21100-21110"
+    environment:
+      FTP_USER: iot
+      FTP_PASS: agro-iot
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /data/vsftpd/uploads:/home/vsftpd
+
+  config-server:
+    image: registry.cn-beijing.aliyuncs.com/agro-iot/config-server:1.0.1-SNAPSHOT
+    restart: always
+    environment:
+      ACTIVE_PROFILE: prod
+    ports:
+      - "8081:8000"
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  iot-control-service:
+    image: registry.cn-beijing.aliyuncs.com/agro-iot/iot-control-service:1.0.1-SNAPSHOT
+    restart: always
+    ports:
+      - "8002:8000"
+      - "9002:9000"
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  iot-data-receiver:
+    image: registry.cn-beijing.aliyuncs.com/agro-iot/iot-data-receiver:1.0.5-SNAPSHOT
+    restart: always
+    depends_on:
+      - agro-iot-backend
+    ports:
+      - "8000:8000/udp"
+      - "9001:9001"
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  iot-data-receiver-8001:
+    image: registry.cn-beijing.aliyuncs.com/agro-iot/iot-data-receiver:1.0.5-SNAPSHOT
+    restart: always
+    depends_on:
+      - agro-iot-backend
+    ports:
+      - "8001:8000/udp"
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  iot-data-receiver-8002:
+    image: registry.cn-beijing.aliyuncs.com/agro-iot/iot-data-receiver:1.0.5-SNAPSHOT
+    restart: always
+    depends_on:
+      - agro-iot-backend
+    ports:
+      - "8002:8000/udp"
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  iot-data-receiver-8003:
+    image: registry.cn-beijing.aliyuncs.com/agro-iot/iot-data-receiver:1.0.5-SNAPSHOT
+    restart: always
+    depends_on:
+      - agro-iot-backend
+    ports:
+      - "8003:8000/udp"
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  agro-iot-backend:
+    image: registry.cn-beijing.aliyuncs.com/agro-iot/agro-iot-backend:1.0.8-SNAPSHOT
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "8000:8000"
+    environment:
+      ACTIVE_PROFILE: production
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /data/vsftpd/uploads/iot/:/iot-files/
+
+  agro-iot-ui:
+    image: registry.cn-beijing.aliyuncs.com/agro-iot/agro-iot-ui:v1.0.4
+    restart: always
+    ports:
+      - "9004:80"
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  iot-web-ui:
+    image: nginx
+    restart: always
+    ports:
+      - "8082:80"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /data/agro_iot_web_ui:/usr/share/nginx/html
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /data/grafana:/var/lib/grafana
+
+  prometheus:
+    image: quay.io/prometheus/prometheus
+    restart: always
+    command: "--config.file=/tmp/prometheus.yml"
+    ports:
+      - "9091:9090"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /data/deployments/prometheus.yml:/tmp/prometheus.yml
+
+  portainer:
+    image: portainer/portainer-ce
+    restart: always
+    ports:
+      - "9003:9000"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  node-exporter:
+    image: prom/node-exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    ports:
+      - "9100:9100"
+    network_mode: host
+
+  redis-exporter:
+    image: oliver006/redis_exporter
+    restart: always
+    command: --redis.addr=redis://redis:6379
+    ports:
+      - "9121:9121"
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter
+    restart: always
+    environment:
+      - DATA_SOURCE_NAME=root:root@(mysql:3306)/
+    ports:
+      - "9104:9104"
+
+  frp:
+    image: silence129/frp:v0.34.3
+    ports:
+      - "8090:80"
+      - "7000:7000"
+      - "7500:7500"
+    volumes:
+      - /data/frp:/var/frp/conf
+    restart: always
+    environment:
+      VIRTUAL_HOST: '*.auto-control.com.cn'
+
+  agro-doctor-backend:
+    image: registry.cn-beijing.aliyuncs.com/agro-cloud/agro-doctor-backend:1.0.0
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "8004:8000"
+    environment:
+      STATICFILEDOMAIN: https://agro-cloud-doctor-pictures.oss-cn-beijing.aliyuncs.com
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8000
+      APPID: wxec2eade701cb90f1
+      APPSECRET: f5fa756367c1142a5c8a74c7b740fb0b
+      MYSQL: mysql://root:@mysql:13306/agro_cloud_doctor
+      DOMAIN: https://agro-iot.auto-control.com.cn/api
+    volumes:
+      - /etc/localtime:/etc/localtime

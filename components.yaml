@@ -1,0 +1,134 @@
+openapi: 3.0.0
+info:
+  title: Agro-Cloud-Doctor API
+  description: www.auto.com.
+  version: v1.0.0
+
+servers:
+  - url: http://localhost:8083/api
+    description: Local Server-API
+  - url: https://agro-doctor.auto-control.com.cn/api
+    description: Online Server-API
+
+components:
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+
+security:
+  - Authorization: [ ]
+
+paths:
+  /plant:
+    get:
+      summary: 获取所有的种植信息
+      tags:
+        - plant
+      responses:
+        '200':
+          description: OK.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      summary: 增加种植信息
+      tags:
+        - plant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_name:
+                  type: string
+                product_kind:
+                  type: string
+                plant_scope:
+                  type: integer
+                plant_condition:
+                  type: string
+                irrigation_mode:
+                  type: string
+                station_name:
+                  type: string
+                station_id:
+                  type: integer
+                plant_type:
+                  type: string
+                plant_start_datetime:
+                  type: string
+                plant_end_datetime:
+                  type: string
+                company_name:
+                  type: string
+                company_address:
+                  type: string
+                company_manager:
+                  type: string
+                company_contact:
+                  type: string
+                company_email:
+                  type: string
+                company_url:
+                  type: string
+                seed_source:
+                  type: string
+                seed_count:
+                  type: integer
+                seed_operator:
+                  type: string
+                seed_photo:
+                  type: string
+                system_title:
+                  type: string
+                system_copyright:
+                  type: string
+      responses:
+        '200':
+          description: OK.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      summary: 修改种植信息
+      tags:
+        - plant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                work_type:
+                  type: string
+                content:
+                  type: string
+                start_datetime:
+                  type: string
+                end_datetime:
+                  type: string
+      responses:
+        '200':
+          description: OK.
+    delete:
+      summary: 删除种植信息
+      tags:
+        - plant
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: plant info ID
+      responses:
+        '200':
+          description: OK.
