@@ -1,5 +1,5 @@
 aerich==0.3.3
-aiohttp==3.7.3
+aiohttp==3.8.1
 aiohttp-autoreload==0.0.1
 aiohttp-cors==0.7.0
 aiohttp-devtools==0.13.1
